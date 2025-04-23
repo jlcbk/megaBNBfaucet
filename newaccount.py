@@ -27,8 +27,7 @@ def claim_airdrop(address):
     try:
         result = subprocess.run(
             ['node', '-e', 
-             f"const {{ claimAirdrop }} = require('/Users/fomostorm/Documents/megaBNB/@getMegaBNB.js'); \
-              claimAirdrop('{address}').then(console.log);"],
+             f"const {{ claimAirdrop }} = require('/Users/fomostorm/Documents/megaBNBfaucet/@getMegaBNB.js'); \n              claimAirdrop('{address}').then(console.log);"],
             capture_output=True,
             text=True,
             check=True  # 添加check参数捕获子进程错误
@@ -36,8 +35,13 @@ def claim_airdrop(address):
         print("Node输出:", result.stderr)  # 打印错误输出
     
         try:
-            return json.loads(result.stdout)
-        except:
+            # 处理JavaScript模块可能返回的不同格式
+            if isinstance(result.stdout, str):
+                return json.loads(result.stdout)
+            else:
+                return result.stdout
+        except Exception as e:
+            print(f"JSON解析错误: {e}")
             return {"success": False, "message": "调用失败"}
     except subprocess.CalledProcessError as e:
         return {"success": False, "message": f"Node进程错误: {e.stderr}"}
